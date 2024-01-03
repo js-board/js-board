@@ -1,0 +1,68 @@
+#! /bin/bash -e
+[ -z "$MODDABLE" ] && export MODDABLE=/home/sw/moddable/moddable
+[ -z "$IDF_PATH" ] && export IDF_PATH=/home/sw/moddable/esp-idf5
+[ -z "$UPLOAD_PORT" ] && export UPLOAD_PORT=/dev/ttyUSB0
+[ -z "$MODTVE"] && export MODTVE=/home/src/moddable/modules
+#export PATH=/home/sw/moddable/moddable/build/bin/lin/debug:$PATH
+
+# tsc calculates a root dir which is the common prefix of all imported modules in the
+# moddable manifest. We need this to generate the typescript manifest.
+ROOT_DIR=${PWD%/*}
+
+mkdir -p build
+rm -r types 2>/dev/null || true
+printenv | sort
+mcconfig -d -m -t build -o ./build -p esp32/nodemcu "${@}"
+
+NAME=$(basename $PWD)
+TSCONFIG=build/tmp/esp32/nodemcu/debug/$NAME/modules/tsconfig.json
+BIN_DIR=build/bin/esp32/nodemcu/debug/$NAME
+TYPES_DIR=$PWD/types
+[[ -f $TSCONFIG ]] || (echo $TSCONFIG missing; exit 1)
+[[ -f $BIN_DIR/xs_esp32.bin ]] || (echo $BIN_DIR/xs_esp32.bin missing; exit 1)
+
+M=manifest-$NAME.json
+cat >$M <<EOF
+{
+    "typescript": {
+        "tsconfig": {
+            "compilerOptions": {
+EOF
+
+OLDIFS="$IFS"
+IFS="|"
+RE='^\s*"(.*)"$'
+sed -n -e '/^\s*"paths":/,/^\s*}/p' $TSCONFIG | 
+    while read line; do
+        if [[ "$line" =~ $RE ]]; then
+            if [[ -f ${BASH_REMATCH[1]}.ts ]]; then
+                echo "$line" | sed -e "s;\"$ROOT_DIR;\"$TYPES_DIR;"
+                continue
+            fi
+        fi
+        echo "$line"
+    done >>$M
+IFS="$OLDIFS"
+
+cat >>$M <<EOF
+                "sourceMap": true
+            }
+        }
+    }
+}
+EOF
+
+[ -e $UPLOAD_PORT ] || exit 0
+
+python $IDF_PATH/components/esptool_py/esptool/esptool.py \
+    -p $UPLOAD_PORT -b 920600 --chip esp32 \
+    --before default_reset --after hard_reset write_flash \
+    --flash_mode dio --flash_size 4MB --flash_freq 80m \
+    0x1000 $BIN_DIR/bootloader.bin \
+    0x8000 $BIN_DIR/partition-table.bin \
+    0x10000 $BIN_DIR/xs_esp32.bin                
+
+[ -z "$DISPLAY" ] && exit 0
+
+serial2xsbug $UPLOAD_PORT 115200 8N1
+#miniterm $UPLOAD_PORT 115200

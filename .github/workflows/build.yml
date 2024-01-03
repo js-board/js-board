@@ -1,0 +1,76 @@
+name: Build JS-Board firmware images
+
+on: [push]
+
+env:
+  # Upload to AWS uses OIDC for federated auth:
+  # https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+  S3_PATH: js-board/images
+  S3_REGION: us-east-2
+  AWS_ROLE: arn:aws:iam::635201719205:role/github-actions-jsboard
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # build-image customizes the base image by adding the sensorgnome software
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: .
+
+      # use branch or tag name in S3 upload path unless it's a release version tag
+      - run: |
+          echo GIT_REF=${{github.ref}} | sed -e 's;refs/[^/]*/;/;' -e 's;/v2.*;;' >>$GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{env.AWS_ROLE}}
+          role-session-name: GithubActionsJSBoard
+          aws-region: ${{ env.S3_REGION }}
+
+      - name: Fetch existing base image from S3
+        run: |
+          mkdir -p images
+          aws s3 cp --no-progress s3://$S3_PATH/$BASE_ZIP images
+          ls -lsh images
+
+      - name: Build image
+        uses: addnab/docker-run-action@v3
+        with:
+          image: tvoneicken/moddable:latest
+          options: ./compile
+      
+      - run: ls -lsR build/bin
+
+      # Upload github artifacts for debugging purposes
+      # (commented out to save 1min of workflow run time)
+      # - uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ${{env.SG_ZIP}}
+      #     path: images/${{env.SG_ZIP}}
+
+      - name: Upload image to AWS S3 repo
+        run: |
+          aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP 
+
+      # - name: Upload latest image to AWS S3 repo
+      #   if: >
+      #     github.repository == 'tve/sensorgnome-build' &&
+      #     startsWith(github.ref, 'refs/tags/v') &&
+      #     github.event_name == 'push'
+      #   run: |
+      #     IMG=${SG_ZIP/rpi-2.*/rpi-2.latest.zip}
+      #     aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$IMG 
+
+      # - name: Create annotation with link to images on S3
+      #   run: |
+      #     S3=${S3_PATH/\//.s3.amazonaws.com\/}
+      #     echo "https://$S3$GIT_REF/$SG_ZIP"
+      #     echo "::notice title=Sensorgnome Image::https://$S3$GIT_REF/$SG_ZIP "

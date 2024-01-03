@@ -1,0 +1,80 @@
+{
+  "include": [
+    "$(MODDABLE)/examples/manifest_base.json",
+    "$(MODDABLE)/examples/manifest_typings.json",
+    "$(MODDABLE)/examples/manifest_net.json",
+    "$(MODDABLE)/examples/io/tcp/tlssocket/manifest.json",
+    "$(MODDABLE)/examples/io/udp/dns/manifest_dns.json",
+    "$(MODDABLE)/modules/crypt/tls_419.json",
+    "$(MODULES)/base/modules/manifest.json",
+    "$(MODULES)/data/base64/manifest.json",
+    "$(MODULES)/data/text/decoder/manifest.json",
+    "$(MODULES)/data/text/encoder/manifest.json",
+    "$(MODULES)/files/preference/manifest.json",
+    "$(MODULES)/files/flash/manifest.json",
+    "$(MODTVE)/lib/rest-server/manifest.json",
+    "$(MODTVE)/lib/sys/manifest.json"
+  ],
+  "modules": {
+    "main": ["./main.ts"],
+    "js-board/*": ["./*.ts"],
+    "dns/server": "$(MODULES)/network/dns/dnsserver"
+  },
+  "platforms": {
+    "esp": {
+      "modules": {
+        "~": ["$(BUILD)/devices/esp/setup/network"]
+      }
+    },
+    "esp32": {
+      "include": ["$(MODDABLE)/modules/files/file/manifest_littlefs.json"],
+      "modules": {
+        "~": ["$(BUILD)/devices/esp32/setup/network"]
+      },
+      "defines": {
+        "file": {
+          "partition": "#storage",
+          "size": 1048576,
+          "lfs": {
+            "read_size": 512,
+            "prog_size": 512,
+            "cache_size": 512,
+            "lookahead_size": 512,
+            "block_cycles": 500
+          }
+        },
+        "WIFI_ESP32_CONNECT_RETRIES": 0
+      }
+    }
+  },
+  "config": {
+    "led": {
+      "rainbow": false
+    }
+  },
+  "data": {
+    "*": ["$(MODULES)/crypt/data/ca106", "$(MODULES)/crypt/data/ca109"]
+  },
+  "defines": {
+    "XS_MODS": 1,
+    "XS_ABORTHOOK": 1
+  },
+  "preload": [],
+  "strip": [],
+  "build": {
+    "SRC": "$(PWD)"
+  },
+  "creation": {
+    "keys": {
+      "available": 256
+    }
+  },
+  "typescript": {
+    "tsconfig": {
+      "compilerOptions": {
+        "declaration": true,
+        "declarationDir": "$(SRC)/types"
+      }
+    }
+  }
+}
