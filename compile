@@ -11,9 +11,12 @@ ROOT_DIR=${PWD%/*}
 
 mkdir -p build
 rm -r types 2>/dev/null || true
+echo == Compilation env vars:
 printenv | sort
+echo == Starting mcconfig
 mcconfig -d -m -t build -o ./build -p esp32/nodemcu "${@}"
 
+echo == Generating typescript manifest
 NAME=$(basename $PWD)
 TSCONFIG=build/tmp/esp32/nodemcu/debug/$NAME/modules/tsconfig.json
 BIN_DIR=build/bin/esp32/nodemcu/debug/$NAME
