@@ -39,7 +39,10 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: tvoneicken/moddable:latest
-          options: ./compile
+          options: -v ${{github.workspace}}:/usr/src/js-board
+          run: |
+            cd /usr/src/js-board
+            ./compile
       
       - run: ls -lsR build/bin
 
