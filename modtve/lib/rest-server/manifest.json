@@ -1,0 +1,7 @@
+{
+  "include": ["$(MODDABLE)/examples/io/listener/httpserver/manifest_httpserver.json"],
+  "modules": {
+    "embedded:network/http/rest-server": "./rest-server"
+  },
+  "preload": ["embedded:network/http/rest-server"]
+}

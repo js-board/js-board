@@ -1,0 +1,9 @@
+{
+  "modules": {
+    "sys": ["./sys", "./modSys"]
+  },
+  "preload": ["sys"],
+  "defines": {
+    "XS_TEST": "1"
+  }
+}

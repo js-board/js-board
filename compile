@@ -2,7 +2,7 @@
 [ -z "$MODDABLE" ] && export MODDABLE=/home/sw/moddable/moddable
 [ -z "$IDF_PATH" ] && export IDF_PATH=/home/sw/moddable/esp-idf5
 [ -z "$UPLOAD_PORT" ] && export UPLOAD_PORT=/dev/ttyUSB0
-[ -z "$MODTVE"] && export MODTVE=/home/src/moddable/modules
+[ -z "$MODTVE"] && export MODTVE=./modtve
 #export PATH=/home/sw/moddable/moddable/build/bin/lin/debug:$PATH
 
 # tsc calculates a root dir which is the common prefix of all imported modules in the
