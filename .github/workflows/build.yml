@@ -35,12 +35,6 @@ jobs:
           role-session-name: GithubActionsJSBoard
           aws-region: ${{ env.S3_REGION }}
 
-      - name: Fetch existing base image from S3
-        run: |
-          mkdir -p images
-          aws s3 cp --no-progress s3://$S3_PATH/$BASE_ZIP images
-          ls -lsh images
-
       - name: Build image
         uses: addnab/docker-run-action@v3
         with:
