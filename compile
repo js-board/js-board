@@ -5,6 +5,12 @@
 [ -z "$MODTVE"] && export MODTVE=./modtve
 #export PATH=/home/sw/moddable/moddable/build/bin/lin/debug:$PATH
 
+if [[ "$1" == esp32* ]]; then
+    TARGET=$1
+else
+    TARGET=esp32
+fi
+
 # tsc calculates a root dir which is the common prefix of all imported modules in the
 # moddable manifest. We need this to generate the typescript manifest.
 ROOT_DIR=${PWD%/*}
@@ -14,12 +20,12 @@ rm -r types 2>/dev/null || true
 echo == Compilation env vars:
 printenv | sort
 echo == Starting mcconfig
-mcconfig -d -m -t build -o ./build -p esp32 "${@}"
+mcconfig -d -m -t build -o ./build -p $TARGET "${@}"
 
 echo == Generating typescript manifest
 NAME=$(basename $PWD)
-TSCONFIG=build/tmp/esp32/nodemcu/debug/$NAME/modules/tsconfig.json
-BIN_DIR=build/bin/esp32/nodemcu/debug/$NAME
+TSCONFIG=build/tmp/$TARGET/debug/$NAME/modules/tsconfig.json
+BIN_DIR=build/bin/$TARGET/debug/$NAME
 TYPES_DIR=$PWD/types
 [[ -f $TSCONFIG ]] || (echo $TSCONFIG missing; exit 1)
 [[ -f $BIN_DIR/xs_esp32.bin ]] || (echo $BIN_DIR/xs_esp32.bin missing; exit 1)

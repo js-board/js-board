@@ -30,7 +30,7 @@ cat <<EOF >$DIR/manifest-flasher.json
 }
 EOF
 
-cp build/bin/esp32/*/js-board/*.bin $DIR
+cp $(find build/bin/$TARGET -name \*.bin) $DIR
 cp -a types $DIR
 cp manifest-js-board.json $DIR
 
