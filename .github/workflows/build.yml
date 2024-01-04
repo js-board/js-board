@@ -31,14 +31,23 @@ jobs:
           role-session-name: GithubActionsJSBoard
           aws-region: ${{ env.S3_REGION }}
 
-      - name: Build image
-        uses: addnab/docker-run-action@v3
-        with:
-          image: tvoneicken/moddable:latest
-          options: -v ${{github.workspace}}:/usr/src/js-board
-          run: |
-            cd /usr/src/js-board
-            ./compile
+      # - name: Build image
+      #   uses: addnab/docker-run-action@v3
+      #   with:
+      #     image: tvoneicken/moddable:latest
+      #     options: -v ${{github.workspace}}:/usr/src/js-board
+      #     run: |
+      #       cd /usr/src/js-board
+      #       ./compile
+
+      - name: Fake image for upload testing purposes (comment out the actual build step)
+        run: |
+          mkdir -p build/bin
+          echo "bootloader" > build/bin/bootloader.bin
+          echo "partition" > build/bin/partition-table.bin
+          mkdir types
+          touch types/foo.d.ts
+          echo '{}' >manifest-js-board.json
       
       - run: ls -lsR build/bin
 
