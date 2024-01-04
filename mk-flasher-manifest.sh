@@ -3,16 +3,15 @@ GIT_REF=$1
 DATE=$(TZ=America/Los_Angeles date +%Y.%j)
 BR=$(git rev-parse --abbrev-ref HEAD)
 if [[ $GIT_REF == /ref/tags/v* ]]; then
-  DIR=dist/release
+  DIR=dist/release/$BR
   NAME=js-board-$BR # release tag
 elif [[ $GIT_REF == /ref/heads/main ]]; then
-  DIR=dist/main
+  DIR=dist/main/$DATE
   NAME=js-board-$DATE # main branch, just use date
 else
-  DIR=dist/$BR
+  DIR=dist/$BR/$DATE
   NAME=js-board-$BR-$DATE # branch push, append date
 fi
-DIR=$DIR/$NAME
 
 mkdir -p $DIR
 cat <<EOF >$DIR/manifest-flasher.json

@@ -31,23 +31,23 @@ jobs:
           role-session-name: GithubActionsJSBoard
           aws-region: ${{ env.S3_REGION }}
 
-      # - name: Build image
-      #   uses: addnab/docker-run-action@v3
-      #   with:
-      #     image: tvoneicken/moddable:latest
-      #     options: -v ${{github.workspace}}:/usr/src/js-board
-      #     run: |
-      #       cd /usr/src/js-board
-      #       ./compile
+      - name: Build image
+        uses: addnab/docker-run-action@v3
+        with:
+          image: tvoneicken/moddable:latest
+          options: -v ${{github.workspace}}:/usr/src/js-board
+          run: |
+            cd /usr/src/js-board
+            ./compile
 
-      - name: Fake image for upload testing purposes (comment out the actual build step)
-        run: |
-          mkdir -p build/bin
-          echo "bootloader" > build/bin/bootloader.bin
-          echo "partition" > build/bin/partition-table.bin
-          mkdir types
-          touch types/foo.d.ts
-          echo '{}' >manifest-js-board.json
+      # - name: Fake image for upload testing purposes (comment out the actual build step)
+      #   run: |
+      #     mkdir -p build/bin
+      #     echo "bootloader" > build/bin/bootloader.bin
+      #     echo "partition" > build/bin/partition-table.bin
+      #     mkdir types
+      #     touch types/foo.d.ts
+      #     echo '{}' >manifest-js-board.json
       
       - run: ls -lsR manifest* build/bin types
 
@@ -71,8 +71,8 @@ jobs:
           echo $VERSION
           echo "::notice title=Version::$VERSION "
 
-      - run: |
-          S3=${S3_PATH/\//.s3.amazonaws.com\/}
-          MANIFEST=$(echo dist/*/manifest-flasher.json | sed -e 's/dist/images/')
-          echo "https://$S3/$MANIFEST"
-          echo "::notice title=Manifest::https://$S3/$MANIFEST "
+      # - run: |
+      #     S3=${S3_PATH/\//.s3.amazonaws.com\/}
+      #     MANIFEST=$(echo dist/*/manifest-flasher.json | sed -e 's/dist/images/')
+      #     echo "https://$S3/$MANIFEST"
+      #     echo "::notice title=Manifest::https://$S3/$MANIFEST "
