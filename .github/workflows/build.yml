@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload image directory to AWS S3 repo
         run: |
-          aws s3 sync --acl public-read --no-progress dist s3://${{env.S3_PATH}}
+          aws s3 sync --no-progress dist s3://${{env.S3_PATH}}
 
       - name: Create annotation with link to images on S3
         run: |
