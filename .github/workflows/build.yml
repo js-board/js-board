@@ -46,15 +46,8 @@ jobs:
       
       - run: ls -lsR build/bin
 
-      # Figure out base name of artifacts
-      - run: |
-          DATE=$(TZ=America/Los_Angeles date +%Y-%j)
-          NAME=js-board-$GIT_REF-$DATE
-          echo NAME=$NAME >>$GITHUB_ENV
-          echo NAME=$NAME
-
       # Create dir with image(s) and manifest
-      - run: ./make-flasher-manifest.sh $NAME $GIT_REF $DATE
+      - run: ./make-flasher-manifest.sh ${{github.ref}}
 
       # Upload github artifacts for debugging purposes
       # (commented out to save 1min of workflow run time)
@@ -63,9 +56,9 @@ jobs:
       #     name: ${{env.SG_ZIP}}
       #     path: images/${{env.SG_ZIP}}
 
-      - name: Upload image to AWS S3 repo
+      - name: Upload image directory to AWS S3 repo
         run: |
-          aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$SG_ZIP 
+          aws s3 sync --acl public-read --no-progress dist s3://${{env.S3_PATH}}
 
       # - name: Upload latest image to AWS S3 repo
       #   if: >

@@ -3,17 +3,17 @@ GIT_REF=$1
 DATE=$(TZ=America/Los_Angeles date +%Y.%j)
 BR=$(git rev-parse --abbrev-ref HEAD)
 if [[ $GIT_REF == /ref/tags/v* ]]; then
-  DIR=release
+  DIR=dist/release
   NAME=js-board-$BR # release tag
 elif [[ $GIT_REF == /ref/heads/main ]]; then
-  DIR=main
+  DIR=dist/main
   NAME=js-board-$DATE # main branch, just use date
 else
-  DIR=$BR
+  DIR=dist/$BR
   NAME=js-board-$BR-$DATE # branch push, append date
 fi
 
-mkdir $DIR
+mkdir -p $DIR
 if [[ "$2" == v* ]]; then
 cat <<EOF >$DIR/manifest-flasher.json
 {
@@ -34,3 +34,6 @@ EOF
 cp build/bin/*.bin $DIR
 cp -a types $DIR
 cp manifest-js-board.json $DIR
+
+echo "Created $DIR:"
+ls -ls $DIR
