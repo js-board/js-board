@@ -23,10 +23,6 @@ jobs:
         with:
           path: .
 
-      # use branch or tag name in S3 upload path unless it's a release version tag
-      - run: |
-          echo GIT_REF=${{github.ref}} | sed -e 's;refs/[^/]*/;/;' >>$GITHUB_ENV
-
       - name: Configure AWS Credentials
         # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
         uses: aws-actions/configure-aws-credentials@v4
@@ -46,8 +42,8 @@ jobs:
       
       - run: ls -lsR build/bin
 
-      # Create dir with image(s) and manifest
-      - run: ./make-flasher-manifest.sh ${{github.ref}}
+      - name: Create artifacts directory with manifest ready to upload
+        run: ./mk-flasher-manifest.sh ${{github.ref}}
 
       # Upload github artifacts for debugging purposes
       # (commented out to save 1min of workflow run time)
