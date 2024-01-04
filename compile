@@ -3,6 +3,7 @@
 [ -z "$IDF_PATH" ] && export IDF_PATH=/home/sw/moddable/esp-idf5
 [ -z "$UPLOAD_PORT" ] && export UPLOAD_PORT=/dev/ttyUSB0
 [ -z "$MODTVE"] && export MODTVE=./modtve
+[ -z "$DEBUGGER_SPEED" ] && export DEBUGGER_SPEED=115200
 #export PATH=/home/sw/moddable/moddable/build/bin/lin/debug:$PATH
 
 if [[ "$1" == esp32* ]]; then
@@ -22,7 +23,7 @@ printenv | sort
 echo == Starting mcconfig
 mcconfig -d -m -t build -o ./build -p $TARGET "${@}"
 
-echo == Generating typescript manifest
+echo == Generating typescript manifest, ROOT_DIR=$ROOT_DIR
 NAME=$(basename $PWD)
 TSCONFIG=build/tmp/$TARGET/debug/$NAME/modules/tsconfig.json
 BIN_DIR=build/bin/$TARGET/debug/$NAME

@@ -33,6 +33,7 @@ EOF
 cp $(find build/bin/$TARGET -name \*.bin) $DIR
 cp -a types $DIR
 cp manifest-js-board.json $DIR
+tar zcf $DIR/types.tgz $DIR/types
 
 echo "Created $DIR:"
 ls -ls $DIR
