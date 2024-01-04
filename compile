@@ -14,7 +14,7 @@ rm -r types 2>/dev/null || true
 echo == Compilation env vars:
 printenv | sort
 echo == Starting mcconfig
-mcconfig -d -m -t build -o ./build -p esp32/nodemcu "${@}"
+mcconfig -d -m -t build -o ./build -p esp32 "${@}"
 
 echo == Generating typescript manifest
 NAME=$(basename $PWD)
