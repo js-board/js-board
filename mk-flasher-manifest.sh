@@ -14,7 +14,6 @@ else
 fi
 
 mkdir -p $DIR
-if [[ "$2" == v* ]]; then
 cat <<EOF >$DIR/manifest-flasher.json
 {
   "name": "JS-Board",
