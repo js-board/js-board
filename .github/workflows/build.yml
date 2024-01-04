@@ -49,7 +49,7 @@ jobs:
           touch types/foo.d.ts
           echo '{}' >manifest-js-board.json
       
-      - run: ls -lsR build/bin
+      - run: ls -lsR manifest* build/bin types
 
       - name: Create artifacts directory with manifest ready to upload
         run: ./mk-flasher-manifest.sh ${{github.ref}}
