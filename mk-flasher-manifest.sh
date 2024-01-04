@@ -12,12 +12,13 @@ else
   DIR=dist/$BR
   NAME=js-board-$BR-$DATE # branch push, append date
 fi
+DIR=$DIR/$NAME
 
 mkdir -p $DIR
 cat <<EOF >$DIR/manifest-flasher.json
 {
   "name": "JS-Board",
-  "version": "${DIR}",
+  "version": "${NAME}",
   "new_install_prompt_erase": true,
   "builds": [{
     "chipFamily": "ESP32",

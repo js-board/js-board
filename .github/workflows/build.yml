@@ -65,17 +65,14 @@ jobs:
         run: |
           aws s3 sync --acl public-read --no-progress dist s3://${{env.S3_PATH}}
 
-      # - name: Upload latest image to AWS S3 repo
-      #   if: >
-      #     github.repository == 'tve/sensorgnome-build' &&
-      #     startsWith(github.ref, 'refs/tags/v') &&
-      #     github.event_name == 'push'
-      #   run: |
-      #     IMG=${SG_ZIP/rpi-2.*/rpi-2.latest.zip}
-      #     aws s3 cp --acl public-read --no-progress images/$SG_ZIP s3://$S3_PATH$GIT_REF/$IMG 
+      - name: Create annotation with link to images on S3
+        run: |
+          VERSION=$(grep version dist/*/manigfest-flasher.json | sed -e 's/"$//' -e 's/.*"//')
+          echo $VERSION
+          echo "::notice title=Version::$VERSION "
 
-      # - name: Create annotation with link to images on S3
-      #   run: |
-      #     S3=${S3_PATH/\//.s3.amazonaws.com\/}
-      #     echo "https://$S3$GIT_REF/$SG_ZIP"
-      #     echo "::notice title=Sensorgnome Image::https://$S3$GIT_REF/$SG_ZIP "
+      - run: |
+          S3=${S3_PATH/\//.s3.amazonaws.com\/}
+          MANIFEST=$(echo dist/*/manifest-flasher.json | sed -e 's/dist/images/')
+          echo "https://$S3/$MANIFEST"
+          echo "::notice title=Manifest::https://$S3/$MANIFEST "
