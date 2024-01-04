@@ -25,7 +25,7 @@ jobs:
 
       # use branch or tag name in S3 upload path unless it's a release version tag
       - run: |
-          echo GIT_REF=${{github.ref}} | sed -e 's;refs/[^/]*/;/;' -e 's;/v2.*;;' >>$GITHUB_ENV
+          echo GIT_REF=${{github.ref}} | sed -e 's;refs/[^/]*/;/;' >>$GITHUB_ENV
 
       - name: Configure AWS Credentials
         # See https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
@@ -45,6 +45,16 @@ jobs:
             ./compile
       
       - run: ls -lsR build/bin
+
+      # Figure out base name of artifacts
+      - run: |
+          DATE=$(TZ=America/Los_Angeles date +%Y-%j)
+          NAME=js-board-$GIT_REF-$DATE
+          echo NAME=$NAME >>$GITHUB_ENV
+          echo NAME=$NAME
+
+      # Create dir with image(s) and manifest
+      - run: ./make-flasher-manifest.sh $NAME $GIT_REF $DATE
 
       # Upload github artifacts for debugging purposes
       # (commented out to save 1min of workflow run time)
