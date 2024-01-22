@@ -67,7 +67,7 @@ jobs:
 
       - name: Create annotation with link to images on S3
         run: |
-          VERSION=$(grep version dist/*/manigfest-flasher.json | sed -e 's/"$//' -e 's/.*"//')
+          VERSION=$(grep version dist/*/manifest-flasher.json | sed -e 's/"$//' -e 's/.*"//')
           echo $VERSION
           echo "::notice title=Version::$VERSION "
 
