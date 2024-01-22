@@ -2,7 +2,7 @@
 [ -z "$MODDABLE" ] && export MODDABLE=/home/sw/moddable/moddable
 [ -z "$IDF_PATH" ] && export IDF_PATH=/home/sw/moddable/esp-idf5
 [ -z "$UPLOAD_PORT" ] && export UPLOAD_PORT=/dev/ttyUSB0
-[ -z "$MODTVE"] && export MODTVE=./modtve
+[ -z "$MODTVE"] && export MODTVE=./tvemodules
 [ -z "$DEBUGGER_SPEED" ] && export DEBUGGER_SPEED=115200
 #export PATH=/home/sw/moddable/moddable/build/bin/lin/debug:$PATH
 
@@ -14,12 +14,12 @@ fi
 
 # tsc calculates a root dir which is the common prefix of all imported modules in the
 # moddable manifest. We need this to generate the typescript manifest.
-ROOT_DIR=${PWD%/*}
+ROOT_DIR=${PWD} # %/*}
 
 mkdir -p build
-rm -r types 2>/dev/null || true
-echo == Compilation env vars:
-printenv | sort
+rm -r typings 2>/dev/null || true
+#echo == Compilation env vars:
+#printenv | sort
 echo == Starting mcconfig
 mcconfig -d -m -t build -o ./build -p $TARGET "${@}"
 
@@ -27,11 +27,24 @@ echo == Generating typescript manifest, ROOT_DIR=$ROOT_DIR
 NAME=$(basename $PWD)
 TSCONFIG=build/tmp/$TARGET/debug/$NAME/modules/tsconfig.json
 BIN_DIR=build/bin/$TARGET/debug/$NAME
-TYPES_DIR=$PWD/types
+TYPINGS_DIR=$PWD/typings
 [[ -f $TSCONFIG ]] || (echo $TSCONFIG missing; exit 1)
 [[ -f $BIN_DIR/xs_esp32.bin ]] || (echo $BIN_DIR/xs_esp32.bin missing; exit 1)
 
-M=manifest-$NAME.json
+# Reconfigure the typings directory
+mv typings/tvemodules/* typings
+rmdir typings/tvemodules
+for f in $(cd tvemodules; find . -name '*.d.ts'); do
+    mkdir -p typings/${f%/*/*}
+    cp tvemodules/$f typings/${f%/*/*} # e.g. tvemodules/sys/sys.d.ts -> typings/sys.d.ts
+done
+mkdir -p typings/vsl
+cp vsl/vsl.d.ts typings/vsl
+for f in $(grep -r -l '/// <reference path' typings); do
+    sed -i -e '/\/\/\/ <reference /d' $f
+done
+
+M=manifest_$NAME.json
 cat >$M <<EOF
 {
     "typescript": {
@@ -42,12 +55,22 @@ EOF
 OLDIFS="$IFS"
 IFS="|"
 RE='^\s*"(.*)"$'
+MOD_RE='".*moddable/typings'
+JSB_RE='".*js-board'
 sed -n -e '/^\s*"paths":/,/^\s*}/p' $TSCONFIG | 
     while read line; do
         if [[ "$line" =~ $RE ]]; then
-            if [[ -f ${BASH_REMATCH[1]}.ts ]]; then
-                echo "$line" | sed -e "s;\"$ROOT_DIR;\"$TYPES_DIR;"
-                continue
+            # got a line with an actual path (not the module name)
+            if [[ -f ${BASH_REMATCH[1]}.ts ]] || [[ -f ${BASH_REMATCH[1]}.d.ts ]]; then
+                # this is a path to a .ts file, ned to remap to typings dir to find .d.ts file
+                line=${line/\"$ROOT_DIR/\"$TYPINGS_DIR}
+            fi
+            # remap top-level dirs to variables for portability
+            if [[ "$line" =~ $MOD_RE ]]; then
+                line=$(echo "$line" | sed -e 's;".*typings;"$(MODDABLE)/typings;')
+            fi
+            if [[ "$line" =~ $JSB_RE ]]; then
+                line=$(echo "$line" | sed -E -e 's;".*typings(/tvemodules)?;"$(JS-BOARD)/typings;')
             fi
         fi
         echo "$line"
@@ -61,6 +84,13 @@ cat >>$M <<EOF
     }
 }
 EOF
+
+echo "rest-server file"
+find typings -name 'rest-server.d.ts'
+echo "in mcconfig tsconfig"
+grep 'rest-server"$' $(find build -name tsconfig.json) | sed -e 's/^\s*//'
+echo "in manifest-js-board"
+grep 'rest-server"$' manifest_js-board.json | sed -e 's/^\s*//'
 
 [ -e $UPLOAD_PORT ] || exit 0
 
@@ -76,3 +106,4 @@ python $IDF_PATH/components/esptool_py/esptool/esptool.py \
 
 serial2xsbug $UPLOAD_PORT 115200 8N1
 #miniterm $UPLOAD_PORT 115200
+#/home/src/js-board/jsb/jsb -p $UPLOAD_PORT # --test rstream
